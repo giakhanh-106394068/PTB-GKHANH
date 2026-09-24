@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PHOTOBOOTH SAOV v3.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<canvas id="bgParticles"></canvas>
+<canvas id="confettiCanvas"></canvas>
+
+<div class="appbar">
+  <button class="appbar-btn" id="btnHeaderBack" title="Quay lại" disabled>‹</button>
+  <div class="appbar-title">Photobooth <strong class="brand">SAOV</strong></div>
+  <button class="appbar-btn" id="btnHeaderMenu">⋯</button>
+  <div class="appbar-menu-panel" id="menuPanel">
+    <b>SAOV Photobooth</b>
+    Sao Việt × Swinburne Life. Chọn số khung, tạo dáng theo hiệu lệnh, tải về dải ảnh của bạn.
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <!-- SCREEN 1: START -->
+  <section class="screen active" id="screen-start">
+    <img src="hero-character.png" class="hero-character" alt="" id="heroCharacter">
+    <div class="panel">
+      <div class="start-grid">
+
+        <div class="start-left">
+          <div class="eyebrow">Sao Việt × Swinburne Life</div>
+          <h1 class="hero-title">Chụp khoảnh khắc<br>cùng SAOV</h1>
+          <p class="hero-text">Chọn số khung ảnh yêu thích, chụp liền 6 tấm theo hiệu lệnh đếm ngược, rồi chọn ra những tấm ưng ý nhất để ghép vào dải ảnh của bạn.</p>
+
+          <div class="feature-chips">
+            <div class="feature-chip">⏱️ Đếm ngược 5s</div>
+            <div class="feature-chip">🎨 6 bộ lọc</div>
+            <div class="feature-chip">📸 Chụp 6, chọn đẹp nhất</div>
+            <div class="feature-chip">📥 Tải &amp; in ngay</div>
+          </div>
+
+          <div class="field-label">Camera</div>
+          <select class="camera-select" id="cameraSelect">
+            <option value="">Camera mặc định của trình duyệt</option>
+          </select>
+
+          <label class="flip-toggle">
+            <input type="checkbox" id="flipCaptureToggle">
+            Lật ảnh khi chụp (bật nếu dùng Canon EOS Webcam Utility — ảnh lưu ra bị ngược)
+          </label>
+
+          <button class="btn btn-white" id="btnStart">📷 Bắt đầu chụp ảnh →</button>
+        </div>
+
+        <div class="start-right">
+          <div class="strip-mock" id="stripMock"></div>
+          <div class="strip-caption">Xem trước bố cục dải ảnh của bạn</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: CAPTURE -->
+  <section class="screen" id="screen-capture">
+    <div class="panel">
+      <div class="panel-title" id="captureTitle" style="font-size:20px;">Xem trước camera</div>
+      <div class="panel-sub" id="captureSubtitle" style="margin-bottom:14px;" aria-live="polite">Chỉnh vị trí và chọn bộ lọc, rồi bấm bắt đầu khi bạn sẵn sàng.</div>
+
+      <div class="capture-layout">
+      <div class="stage-wrap" id="stage">
+        <video id="video" autoplay playsinline muted></video>
+        <div class="flash" id="flash"></div>
+        <div class="countdown-display" id="countdown">5</div>
+        <div class="shot-info hidden" id="shotInfo">📹 Khung <span id="shotNum">1</span> / <span id="shotTotal">6</span></div>
+      </div>
+      <div class="capture-controls">
+        <p id="cameraStatus" role="status">Đang mở camera...</p>
+        <button class="btn btn-white" id="btnBeginCapture" disabled>📷 Bắt đầu chụp 6 ảnh</button>
+        <button class="btn btn-outline" id="btnCancel">Thoát</button>
+      </div>
+      </div>
+
+      <div class="field-label">Bộ lọc</div>
+      <div class="filter-row" id="filterList">
+        <button class="chip on" data-filter="none">Nguyên bản</button>
+        <button class="chip" data-filter="mono">Đen trắng</button>
+        <button class="chip" data-filter="warm">Ấm hoài cổ</button>
+        <button class="chip" data-filter="cool">Lạnh xanh</button>
+        <button class="chip" data-filter="bright">Sáng rõ</button>
+        <button class="chip" data-filter="vivid">Sống động</button>
+      </div>
+
+      <div class="field-label">Đã chụp</div>
+      <div class="thumbs-card">
+        <div class="thumbs-grid" id="thumbs"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SCREEN 2.5: SELECT FAVORITES FROM THE 6 SHOTS -->
+  <section class="screen" id="screen-select">
+    <div class="panel">
+      <div class="panel-title" style="font-size:22px;">Chọn ảnh ưng ý</div>
+      <div class="panel-sub" id="selectSub">Chọn ảnh đẹp nhất trong các tấm vừa chụp</div>
+
+      <div class="select-grid" id="selectGrid"></div>
+
+      <div class="btn-stack">
+        <button class="btn btn-white" id="btnConfirmSelect" disabled>Tiếp tục →</button>
+        <button class="btn btn-outline" id="btnRetakeAll">Chụp lại từ đầu</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: FRAME SELECTOR -->
+  <section class="screen" id="screen-frames">
+    <div class="panel">
+      <div class="frame-heading-row">
+        <div class="panel-title" style="font-size:22px;">Chọn khung hình</div>
+        <button class="frame-refresh" id="btnRefreshFrames" type="button" title="Quét lại thư mục khung">↻ Quét lại</button>
+      </div>
+      <div class="panel-sub">Chọn một khung cho 3 ảnh bạn vừa chọn</div>
+      <div class="frame-scan-status" id="frameScanStatus" role="status" aria-live="polite" hidden></div>
+
+      <div class="frame-grid" id="frameGrid"></div>
+
+      <div class="btn-stack">
+        <button class="btn btn-white" id="btnApplyFrame">Tiếp tục →</button>
+        <button class="btn btn-outline" id="btnBackCapture">Chọn lại ảnh</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 4: REVIEW -->
+  <section class="screen" id="screen-review">
+    <div class="panel">
+      <div class="panel-title" style="font-size:22px;">Dải ảnh của bạn</div>
+      <div class="panel-sub">Xem lại và tải xuống kỷ niệm của bạn</div>
+
+      <div id="printArea">
+        <div class="frame-display">
+          <img id="frameImg" class="frame-bg" src="" alt="">
+          <div class="photos-grid" id="photosGrid"></div>
+          <img id="frameOverlay" class="frame-overlay" src="" alt="">
+        </div>
+      </div>
+
+      <div class="btn-stack" style="margin-top:0;">
+        <div class="btn-row">
+          <button class="btn btn-white" id="btnDownload">📥 Tải xuống</button>
+          <button class="btn btn-white" id="btnPrint">🖨️ In ảnh</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-outline" id="btnChangeFrame">Đổi khung</button>
+          <button class="btn btn-outline" id="btnRetake">Chụp lại</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>© 2026 PHOTOBOOTH SAOV · Sao Việt x Swinburne Life · DESIGN BY VTRAN · [build: width-locked-5cm-noCrop]</footer>
+</div>
+
+<!-- Printing now happens in a separate pop-up window (see btnPrint handler
+     below) rather than an in-page print sheet, so there's nothing needed
+     here for it anymore. -->
+
+<canvas id="workCanvas" class="hidden"></canvas>
+
+<script src="bundled-frame-data.js"></script>
+<script src="dynamic-frame-system.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
